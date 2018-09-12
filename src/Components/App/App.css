@@ -1,0 +1,44 @@
+.container {
+  margin: 3em 20%;
+  text-align: center;
+}
+
+.table-row {
+  display: flex;
+}
+
+.table-item {
+  flex: 1;
+}
+
+.table-header {
+  padding: 1em 3em;
+  background-color: darkblue;
+  color: white;
+  font-size: 20px;
+}
+
+.table-cell {
+  border: 1px solid darkblue;
+  padding: 2em 0;
+}
+
+.warning {
+  margin-top: 1em;
+  border: 2px solid sandybrown;
+  border-radius: 5px;
+  padding: 1em 0;
+  font-size: 20px;
+  color: sandybrown;
+}
+
+.toggle-button {
+  margin: 1em auto 0 auto;
+  font-size: 20px;
+  padding: 0.5em 0;
+  width: 15em;
+  color: white;
+  cursor: pointer;
+  background-color: seagreen;
+  border: none;
+}
