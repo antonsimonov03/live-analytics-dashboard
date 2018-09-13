@@ -8,54 +8,59 @@ import {
   humidityChange
 } from "../../redux/DataReducer/actions";
 import PropTypes from "prop-types";
+import { Observable } from "@reactivex/rxjs";
 
 export class App extends Component {
-  state = {
-    stop: false
-  };
+  state = { stop: false };
   componentDidMount() {
-    const myEmitter = new EventEmitter();
+    this.myEmitter = new EventEmitter();
 
-    myEmitter.on("data", ({ timing, eventName }) => {
-      let data = timing;
-      if (timing > 1000) data = "N/A";
-      if (!this.state.stop && data !== this.props[eventName][0])
-        this.props[`${eventName}Change`](data);
+    this.myEmitter.on("data", ({ timing, eventName }) => {
+      this.props[`${eventName}Change`](timing);
     });
 
-    (function getTemperature() {
-      const rand = Math.round(Math.random() * (1200 - 100)) + 100;
-      setTimeout(function() {
-        myEmitter.emit("data", {
-          timing: rand,
-          eventName: "temperature"
-        });
-        getTemperature();
-      }, rand);
-    })();
-    (function getAirPressure() {
-      const rand = Math.round(Math.random() * (1200 - 100)) + 100;
-      setTimeout(function() {
-        myEmitter.emit("data", {
-          timing: rand,
-          eventName: "airPressure"
-        });
+    const humidity = Observable.interval()
+      .concatMap(function(x) {
+        return Observable.of(x)
+          .delay(Math.round(Math.random() * (1200 - 100)) + 100)
+          .map(() => "humidity");
+      })
+      .timeInterval();
+    const temperature = Observable.interval()
+      .concatMap(function(x) {
+        return Observable.of(x)
+          .delay(Math.round(Math.random() * (1200 - 100)) + 100)
+          .map(() => "temperature");
+      })
+      .timeInterval();
+    const airPressure = Observable.interval()
+      .concatMap(function(x) {
+        return Observable.of(x)
+          .delay(Math.round(Math.random() * (1200 - 100)) + 100)
+          .map(() => "airPressure");
+      })
+      .timeInterval();
 
-        getAirPressure();
-      }, rand);
-    })();
-    (function getHumidity() {
-      const rand = Math.round(Math.random() * (1200 - 100)) + 100;
-      setTimeout(function() {
-        myEmitter.emit("data", { timing: rand, eventName: "humidity" });
-        getHumidity();
-      }, rand);
-    })();
+    this.merge = Observable.merge(temperature, airPressure, humidity);
+
+    this.subscribe();
   }
 
-  getRandom = () => Math.round(Math.random() * (1200 - 100)) + 100;
+  subscribe = () =>
+    (this.subscription = this.merge.subscribe(x => {
+      if (x.interval > 1000) x.interval = "N/A";
+      this.myEmitter.emit("data", {
+        timing: x.interval,
+        eventName: x.value
+      });
+    }));
 
-  toggleAction = () => this.setState({ stop: !this.state.stop });
+  toggleAction = async () => {
+    await this.setState({ stop: !this.state.stop });
+    if (this.state.stop) this.subscription.unsubscribe();
+    else this.subscribe();
+  };
+
   render() {
     const { temperature, airPressure, humidity } = this.props;
     return (
@@ -110,3 +115,5 @@ export default connect(
   mapStateToProps,
   mapDispatchToProps
 )(App);
+
+// export default App;
